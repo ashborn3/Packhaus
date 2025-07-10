@@ -1,25 +1,16 @@
 package config
 
 import (
-	"fmt"
+	"log"
 
-	"github.com/caarlos0/env/v6"
+	"github.com/joho/godotenv"
 )
 
-type Configuration struct {
-	Host     string `env:"DB_HOST,required"`
-	Port     string `env:"DB_PORT,required"`
-	User     string `env:"DB_USER,required"`
-	Password string `env:"DB_PSWD,required"`
-	DBName   string `env:"DB_NAME,required"`
-}
-
-func LoadConfig() (*Configuration, error) {
-	cfg := Configuration{}
-	err := env.Parse(&cfg)
+func LoadConfig() error {
+	err := godotenv.Load()
 	if err != nil {
-		return nil, fmt.Errorf("error loading environment vars through .env: %s", err.Error())
+		log.Fatal("Error loading .env file")
 	}
 
-	return &cfg, nil
+	return nil
 }
