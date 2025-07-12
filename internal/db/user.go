@@ -3,19 +3,20 @@ package db
 import "database/sql"
 
 type User struct {
-	ID           int
-	Username     string
-	Email        string
-	PasswordHash string
+	ID       int    `json:"id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Password string `json:"-"` // omit in JSON responses
 }
 
-func CreateUser(db *sql.DB, username, email, pwrdhash string) (User, error) {
+func CreateUser(db *sql.DB, username, email, hashedPassword string) (User, error) {
 	var user User
 	err := db.QueryRow(`
-		insert into users (username, email, password_hash)
-		values ($1, $2, $3)
-		returning id, username, email, password_hash
-	`, username, email, pwrdhash).Scan(&user.ID, &user.Username, &user.Email, &user.PasswordHash)
+		INSERT INTO users (username, email, password)
+		VALUES ($1, $2, $3)
+		RETURNING id, username, email`,
+		username, email, hashedPassword,
+	).Scan(&user.ID, &user.Username, &user.Email)
 
 	return user, err
 }
