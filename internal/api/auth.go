@@ -60,6 +60,31 @@ func (cntlr *controller) SignupHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (cntlr *controller) SigninHandler(w http.ResponseWriter, r *http.ResponseWriter) {
+func (cntlr *controller) SigninHandler(w http.ResponseWriter, r *http.Request) {
+	var req signinRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
+	}
 
+	user, err := db.GetUserByUsername(cntlr.DB, req.Username)
+	if err != nil {
+		http.Error(w, "invalid username or password", http.StatusUnauthorized)
+		return
+	}
+
+	if err := utils.VerifyPassword(user.Password, req.Password); err != nil {
+		http.Error(w, "invalid username or password", http.StatusUnauthorized)
+		return
+	}
+
+	token, err := utils.GenerateJWT(strconv.Itoa(user.ID))
+	if err != nil {
+		http.Error(w, "failed to generate token", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(signinResponse{
+		Token: token,
+	})
 }
