@@ -1,32 +1,29 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
-	"packhaus/internal/middleware"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func RegisterRoutes(router chi.Router) {
+type controller struct {
+	DB *pgxpool.Pool
+}
+
+func newController(db *pgxpool.Pool) *controller {
+	return &controller{
+		DB: db,
+	}
+}
+
+func RegisterRoutes(router chi.Router, pool *pgxpool.Pool) {
+	cntlr := newController(pool)
+
 	router.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("{\"ok\": true}"))
 	})
 
-	router.Route("/api", func(r chi.Router) {
-		r.Use(middleware.AuthMiddlware)
+	router.Post("/auth/signup", cntlr.SignupHandler)
 
-		r.Get("/me", func(w http.ResponseWriter, r *http.Request) {
-			val := r.Context().Value(middleware.ContextKeyUserID)
-			userid, ok := val.(string)
-			if !ok || userid == "" {
-				http.Error(w, "unauthorized", http.StatusUnauthorized)
-				return
-			}
-
-			fmt.Printf("User ID: %s\n", userid)
-			w.Write([]byte("hello user: " + userid))
-
-		})
-	})
 }
