@@ -19,13 +19,6 @@ type signupResponse struct {
 	User  db.User `json:"user"`
 }
 
-type authController struct {
-}
-
-type AuthController interface {
-	SignupHandler(w http.ResponseWriter, r *http.Request)
-}
-
 func (cntlr *controller) SignupHandler(w http.ResponseWriter, r *http.Request) {
 	var req signupRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
