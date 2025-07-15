@@ -19,6 +19,15 @@ type signupResponse struct {
 	User  db.User `json:"user"`
 }
 
+type signinRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type signinResponse struct {
+	Token string `json:"token"`
+}
+
 func (cntlr *controller) SignupHandler(w http.ResponseWriter, r *http.Request) {
 	var req signupRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -49,4 +58,8 @@ func (cntlr *controller) SignupHandler(w http.ResponseWriter, r *http.Request) {
 		Token: token,
 		User:  user,
 	})
+}
+
+func (cntlr *controller) SigninHandler(w http.ResponseWriter, r *http.ResponseWriter) {
+
 }
