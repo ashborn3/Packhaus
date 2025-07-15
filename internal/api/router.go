@@ -25,5 +25,6 @@ func RegisterRoutes(router chi.Router, pool *pgxpool.Pool) {
 	})
 
 	router.Post("/auth/signup", cntlr.SignupHandler)
+	router.Post("/auth/login", cntlr.SigninHandler)
 
 }
