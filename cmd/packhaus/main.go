@@ -26,7 +26,7 @@ func main() {
 
 	router.Use(middleware.Logger)
 
-	api.RegisterRoutes(router)
+	api.RegisterRoutes(router, pool)
 
 	http.ListenAndServe(":8888", router)
 }
