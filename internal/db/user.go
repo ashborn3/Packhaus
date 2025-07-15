@@ -15,12 +15,24 @@ type User struct {
 
 func CreateUser(db *pgxpool.Pool, username, email, hashedPassword string) (User, error) {
 	var user User
-	err := db.QueryRow(context.Background(),
+	err := db.QueryRow(
+		context.Background(),
 		`INSERT INTO users (username, email, password_hash)
 		VALUES ($1, $2, $3)
 		RETURNING id, username, email`,
 		username, email, hashedPassword,
 	).Scan(&user.ID, &user.Username, &user.Email)
+
+	return user, err
+}
+
+func GetUserByUsername(db *pgxpool.Pool, username string) (User, error) {
+	var user User
+	err := db.QueryRow(
+		context.Background(),
+		`SELECT id, username, email, password_hash FROM users WHERE username = $1`,
+		user,
+	).Scan(&user.ID)
 
 	return user, err
 }
