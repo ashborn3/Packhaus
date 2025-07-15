@@ -1,6 +1,10 @@
 package db
 
-import "database/sql"
+import (
+	"context"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+)
 
 type User struct {
 	ID       int    `json:"id"`
@@ -9,10 +13,10 @@ type User struct {
 	Password string `json:"-"` // omit in JSON responses
 }
 
-func CreateUser(db *sql.DB, username, email, hashedPassword string) (User, error) {
+func CreateUser(db *pgxpool.Pool, username, email, hashedPassword string) (User, error) {
 	var user User
-	err := db.QueryRow(`
-		INSERT INTO users (username, email, password)
+	err := db.QueryRow(context.Background(),
+		`INSERT INTO users (username, email, password_hash)
 		VALUES ($1, $2, $3)
 		RETURNING id, username, email`,
 		username, email, hashedPassword,
