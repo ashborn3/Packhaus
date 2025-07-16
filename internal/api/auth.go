@@ -2,8 +2,10 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"packhaus/internal/db"
+	"packhaus/internal/middleware"
 	"packhaus/internal/utils"
 	"strconv"
 )
@@ -69,6 +71,7 @@ func (cntlr *controller) SigninHandler(w http.ResponseWriter, r *http.Request) {
 
 	user, err := db.GetUserByUsername(cntlr.DB, req.Username)
 	if err != nil {
+		fmt.Printf("%s\n", err.Error())
 		http.Error(w, "invalid username or password", http.StatusUnauthorized)
 		return
 	}
@@ -87,4 +90,27 @@ func (cntlr *controller) SigninHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(signinResponse{
 		Token: token,
 	})
+}
+
+func (cntlr *controller) MeHandler(w http.ResponseWriter, r *http.Request) {
+	val := r.Context().Value(middleware.ContextKeyUserID)
+	userID, ok := val.(string)
+	if !ok || userID == "" {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	id, err := strconv.Atoi(userID)
+	if err != nil {
+		http.Error(w, "invalid user ID", http.StatusInternalServerError)
+		return
+	}
+
+	user, err := db.GetUserByID(cntlr.DB, id)
+	if err != nil {
+		http.Error(w, "user not found", http.StatusNotFound)
+		return
+	}
+
+	json.NewEncoder(w).Encode(user)
 }
