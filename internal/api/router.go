@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"packhaus/internal/middleware"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -26,5 +27,10 @@ func RegisterRoutes(router chi.Router, pool *pgxpool.Pool) {
 
 	router.Post("/auth/signup", cntlr.SignupHandler)
 	router.Post("/auth/login", cntlr.SigninHandler)
+
+	router.Route("/api", func(r chi.Router) {
+		r.Use(middleware.AuthMiddlware)
+		r.Get("/me", cntlr.MeHandler)
+	})
 
 }
