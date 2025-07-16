@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -31,8 +32,22 @@ func GetUserByUsername(db *pgxpool.Pool, username string) (User, error) {
 	err := db.QueryRow(
 		context.Background(),
 		`SELECT id, username, email, password_hash FROM users WHERE username = $1`,
-		user,
-	).Scan(&user.ID)
+		username,
+	).Scan(&user.ID, &user.Username, &user.Email, &user.Password)
+
+	return user, err
+}
+
+func GetUserByID(db *pgxpool.Pool, id int) (User, error) {
+	var user User
+	err := db.QueryRow(
+		context.Background(),
+		`SELECT id, username, email, password_hash FROM users WHERE id = $1`,
+		id,
+	).Scan(&user.ID, &user.Username, &user.Email, &user.Password)
+
+	fmt.Printf("%+v\n", user)
+	fmt.Printf("%s\n", err)
 
 	return user, err
 }
