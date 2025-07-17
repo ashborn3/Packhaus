@@ -9,6 +9,8 @@ import (
 	"packhaus/internal/db"
 	"packhaus/internal/middleware"
 	"path/filepath"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type meta struct {
@@ -46,7 +48,7 @@ func (cntlr *controller) UploadPackageHandler(w http.ResponseWriter, r *http.Req
 		http.Error(w, "duplication check failed", http.StatusInternalServerError)
 		return
 	}
-	if !ok {
+	if ok {
 		http.Error(w, "package already exists", http.StatusConflict)
 		return
 	}
@@ -94,4 +96,35 @@ func (cntlr *controller) UploadPackageHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	w.WriteHeader(http.StatusCreated)
+}
+
+func (cntlr *controller) DownloadPackageHandler(w http.ResponseWriter, r *http.Request) {
+	name := chi.URLParam(r, "name")
+	version := chi.URLParam(r, "version")
+
+	pkg, err := db.GetPackageByNameVersion(cntlr.DB, name, version)
+	if err != nil {
+		http.Error(w, "package not found", http.StatusNotFound)
+		return
+	}
+
+	filePath := fmt.Sprintf("./storage/%s/%s.tar.gz", name, version)
+	file, err := os.Open(filePath)
+	if err != nil {
+		http.Error(w, "error reading package from disk", http.StatusInternalServerError)
+		return
+	}
+	defer file.Close()
+
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", pkg.Filename))
+	w.Header().Set("Content-Type", "application/gzip")
+
+	stat, _ := file.Stat()
+	w.Header().Set("Content-Length", fmt.Sprintf("%d", stat.Size()))
+
+	_, err = io.Copy(w, file)
+	if err != nil {
+		http.Error(w, "error sending file", http.StatusInternalServerError)
+		return
+	}
 }

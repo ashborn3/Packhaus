@@ -32,6 +32,7 @@ func RegisterRoutes(router chi.Router, pool *pgxpool.Pool) {
 		r.Use(middleware.AuthMiddlware)
 		r.Get("/me", cntlr.MeHandler)
 		r.Post("/packages", cntlr.UploadPackageHandler)
+		r.Get("/packages/{name}/{version}/download", cntlr.DownloadPackageHandler)
 	})
 
 }

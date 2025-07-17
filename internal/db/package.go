@@ -65,3 +65,19 @@ func CheckDuplicatePackages(db *pgxpool.Pool, name, version, checksum string) (b
 
 	return exists, err
 }
+
+func GetPackageByNameVersion(db *pgxpool.Pool, name, version string) (*Package, error) {
+	var pkg Package
+	err := db.QueryRow(
+		context.Background(),
+		"SELECT id, name, version, description, authors, dependencies, checksum, filename, created_at FROM packages WHERE name = $1 AND version = $2",
+		name,
+		version,
+	).Scan(&pkg.ID, &pkg.Name, &pkg.Version, &pkg.Description, &pkg.Authors, &pkg.Dependencies, &pkg.Checksum, &pkg.Filename, &pkg.CreatedAt)
+	if err != nil {
+		println(err.Error())
+		return nil, err
+	}
+
+	return &pkg, nil
+}
