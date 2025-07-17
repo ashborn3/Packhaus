@@ -38,3 +38,30 @@ func InsertPackage(db *pgxpool.Pool, pkg Package) (Package, error) {
 
 	return pkg, err
 }
+
+func CheckDuplicatePackages(db *pgxpool.Pool, name, version, checksum string) (bool, error) {
+	var exists bool
+	err := db.QueryRow(
+		context.Background(),
+		"SELECT EXISTS(SELECT 1 FROM packages WHERE name = $1 AND version = $2)",
+		name,
+		version,
+	).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+
+	var checksumExists bool
+	err = db.QueryRow(
+		context.Background(),
+		"SELECT EXISTS(SELECT 1 FROM packages WHERE checksum = $1)",
+		checksum,
+	).Scan(&checksumExists)
+	if err != nil {
+		return false, err
+	}
+
+	exists = exists && checksumExists
+
+	return exists, err
+}
