@@ -41,6 +41,16 @@ func (cntlr *controller) UploadPackageHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	ok, err = db.CheckDuplicatePackages(cntlr.DB, metadata.Name, metadata.Version, metadata.Version)
+	if err != nil {
+		http.Error(w, "duplication check failed", http.StatusInternalServerError)
+		return
+	}
+	if !ok {
+		http.Error(w, "package already exists", http.StatusConflict)
+		return
+	}
+
 	file, _, err := r.FormFile("file")
 	if err != nil {
 		http.Error(w, "missing file", http.StatusBadRequest)
